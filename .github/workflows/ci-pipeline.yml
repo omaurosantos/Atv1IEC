@@ -1,0 +1,70 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'  # Otimiza o tempo de instalação usando cache
+
+      - name: Instalar dependências
+        run: npm ci  # Usa 'ci' para instalação mais eficiente
+
+      - name: Rodar testes
+        run: npm test
+
+      - name: Publicar cobertura de testes (Opcional)
+        run: npm run coverage  # Se houver suporte no projeto
+        continue-on-error: true
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Rodar ESLint
+        run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]  # Só roda se os testes e lint passarem
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build do projeto
+        run: npm run build
